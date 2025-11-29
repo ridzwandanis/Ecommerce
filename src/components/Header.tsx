@@ -16,7 +16,12 @@ const Header = () => {
     queryFn: fetchSettings,
   });
 
-  const navLinks = ["Shop", "About", "Collections", "Contact"];
+  const navLinks = [
+    { label: "Beranda", href: "/" },
+    { label: "Belanja", href: "#shop" },
+    { label: "Tentang", href: "#about" },
+    { label: "Kontak", href: "#contact" },
+  ];
 
   return (
     <header className="hidden md:block sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
@@ -25,14 +30,17 @@ const Header = () => {
           {/* Logo/Avatar Section */}
           <div className="flex items-center gap-3">
             {isLoading ? (
-               <div className="flex items-center gap-3">
-                 <Skeleton className="h-10 w-10 rounded-full" />
-                 <Skeleton className="h-4 w-24" />
-               </div>
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <Skeleton className="h-4 w-24" />
+              </div>
             ) : (
               <Link to="/" className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 border border-border">
-                  <AvatarImage src={settings?.logoUrl || "/placeholder.svg"} alt="Store Logo" />
+                  <AvatarImage
+                    src={settings?.logoUrl || "/placeholder.svg"}
+                    alt="Store Logo"
+                  />
                   <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                     {settings?.storeName?.substring(0, 2).toUpperCase() || "ST"}
                   </AvatarFallback>
@@ -46,16 +54,13 @@ const Header = () => {
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-sm font-medium text-foreground/70 transition-colors hover:text-foreground">
-              Home
-            </Link>
             {navLinks.map((link) => (
               <a
-                key={link}
-                href={`#${link.toLowerCase()}`}
+                key={link.label}
+                href={link.href}
                 className="text-sm font-medium text-foreground/70 transition-colors hover:text-foreground"
               >
-                {link}
+                {link.label}
               </a>
             ))}
           </nav>
@@ -66,20 +71,35 @@ const Header = () => {
               {!isLoading && settings && (
                 <>
                   {settings.instagram && (
-                    <a href={settings.instagram} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground">
+                    <a
+                      href={settings.instagram}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
                       <Instagram className="h-5 w-5" />
                     </a>
                   )}
                   {settings.twitter && (
-                    <a href={settings.twitter} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground">
+                    <a
+                      href={settings.twitter}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
                       <Twitter className="h-5 w-5" />
                     </a>
                   )}
                 </>
               )}
             </div>
-            
-            <Button variant="ghost" size="icon" className="relative" onClick={() => setIsCartOpen(true)}>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={() => setIsCartOpen(true)}
+            >
               <ShoppingBag className="h-5 w-5" />
               {itemCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-semibold text-primary-foreground flex items-center justify-center">
@@ -96,7 +116,9 @@ const Header = () => {
               </Link>
             ) : (
               <Link to="/login">
-                <Button variant="ghost" size="sm">Login</Button>
+                <Button variant="ghost" size="sm">
+                  Masuk
+                </Button>
               </Link>
             )}
           </div>

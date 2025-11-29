@@ -17,7 +17,7 @@ const Hero = () => {
     <section className="hidden md:block relative w-full h-[500px] bg-gray-100 overflow-hidden">
       {/* Background Image */}
       {settings?.bannerUrl ? (
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${settings.bannerUrl})` }}
         >
@@ -30,13 +30,16 @@ const Hero = () => {
       {/* Content */}
       <div className="relative z-10 container mx-auto h-full flex flex-col justify-center items-start px-6 text-white">
         <h1 className="text-5xl font-bold tracking-tight mb-4 max-w-2xl">
-          {settings?.storeName || "Welcome to Our Shop"}
+          {settings?.storeName || "Selamat Datang di Toko Kami"}
         </h1>
         <p className="text-xl text-white/90 mb-8 max-w-xl">
-          {settings?.storeDescription || "Discover our latest collection of unique items."}
+          {settings?.storeDescription || "Temukan koleksi produk terbaik kami."}
         </p>
-        <Button size="lg" className="bg-white text-black hover:bg-white/90 border-none">
-          Shop Now
+        <Button
+          size="lg"
+          className="bg-white text-black hover:bg-white/90 border-none"
+        >
+          Belanja Sekarang
         </Button>
       </div>
     </section>
