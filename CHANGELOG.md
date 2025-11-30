@@ -50,6 +50,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Database transactions for data consistency
 - Environment-based configuration
 
+## [1.1.0] - 2025-11-30
+
+### Added
+
+- **Mobile-First UI/UX:** Complete redesign of Home, Product Detail, and Checkout pages to provide a native app-like experience.
+- **Navigation:** Added sticky Mobile Header, Bottom Navigation bar, and Drawer menu.
+- **Location Caching:** Implemented database caching for RajaOngkir location data (Provinces, Cities, Districts) to significantly reduce API calls and prevent rate limiting.
+- **Components:** Added `CategoryGrid`, `NewArrivals` horizontal carousel, `MobileHeader`, `BottomNav`, and modernized `ProductCard`.
+- **Database:** Added `Province`, `City`, and `District` tables for location caching.
+
+### Changed
+
+- **Admin Dashboard:** Fully translated the Admin interface to Indonesian.
+- **Product Card:** Updated to a borderless, portrait-aspect design with a floating cart button.
+- **Cart:** Fixed rendering issues with category objects and standardized currency formatting to IDR.
+- **Performance:** Optimized API usage by caching static location data in the database.
+
+### Fixed
+
+- Fixed `Objects are not valid as a React child` error in Cart.
+- Fixed currency symbol consistency (changed `$` to `Rp`).
+- Fixed API rate limiting (429) errors by implementing caching.
+
 ## [1.0.0] - 2024-11-29
 
 ### Added

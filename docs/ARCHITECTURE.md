@@ -46,6 +46,7 @@ Microsite Shop follows a **three-tier architecture**:
 │  - User Data                                │
 │  - Products & Orders                        │
 │  - Store Settings                           │
+│  - Location Cache (Provinces/Cities)        │
 └─────────────────────────────────────────────┘
 ```
 
@@ -418,6 +419,26 @@ Frontend → Backend → RajaOngkir API
 
   5. User selects service
      → Shipping cost added to order
+```
+
+### Location Caching Strategy (Cache-Aside)
+
+To prevent API rate limiting (Error 429) and improve performance, we use a **Cache-Aside** strategy for location data:
+
+1.  **Check DB**: When a location list (Provinces/Cities/Districts) is requested, the backend first checks the local PostgreSQL database.
+2.  **Return Cached**: If data exists, it is returned immediately (0 API calls).
+3.  **Fetch & Cache**: If data is missing, the backend fetches it from RajaOngkir API, saves it to the database, and then returns it.
+
+This ensures that API calls are only made once per region type, significantly reducing external dependency.
+
+```typescript
+// Example Logic
+const cached = await prisma.province.findMany();
+if (cached.length > 0) return cached;
+
+const response = await axios.get(RAJAONGKIR_URL);
+await prisma.province.createMany({ data: response.data }); // Cache for future
+return response.data;
 ```
 
 ### Weight Calculation

@@ -32,14 +32,18 @@
 ### 👨‍💼 **Admin Features**
 
 - **Product Management** - Create, update, and delete products with ease
+- **Category Management** - Organize products into categories
 - **Inventory Tracking** - Real-time stock management with low-stock alerts
 - **Order Management** - View and update order status
 - **Dashboard Analytics** - Revenue charts and sales statistics
 - **Store Settings** - Customize store name, logo, and social media links
+- **Indonesian Interface** - Fully localized admin dashboard
 - **Automatic Stock Deduction** - Prevents overselling with transaction safety
 
 ### 🚀 **Technical Highlights**
 
+- **Mobile-First UI** - App-like experience with sticky headers and bottom navigation
+- **Location Caching** - Smart database caching for shipping APIs to prevent rate limiting
 - **Type-Safe** - Full TypeScript implementation on both frontend and backend
 - **Modern UI** - Built with Tailwind CSS and shadcn/ui components
 - **Optimistic Updates** - Smooth UX with React Query
