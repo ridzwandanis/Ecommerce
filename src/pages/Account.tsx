@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchMyOrders, Order } from "@/lib/api";
 import Header from "@/components/Header";
+import MobileHeader from "@/components/MobileHeader";
+import BottomNav from "@/components/BottomNav";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -58,10 +60,11 @@ const Account = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col pb-16 md:pb-0">
       <Header />
+      <MobileHeader />
 
-      <main className="container mx-auto px-6 py-12 flex-grow">
+      <main className="container mx-auto px-4 md:px-6 py-6 md:py-12 flex-grow">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar Profile */}
           <aside className="w-full md:w-1/4 space-y-6">
@@ -365,7 +368,10 @@ const Account = () => {
         </DialogContent>
       </Dialog>
 
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
+      <BottomNav />
     </div>
   );
 };

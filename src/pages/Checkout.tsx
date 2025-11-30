@@ -7,6 +7,7 @@ import {
   fetchProvinces,
   fetchCities,
   fetchDistricts,
+  fetchSettings,
   calculateShippingCost,
   Order,
   CreateOrderInput,
@@ -29,14 +30,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Truck, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, Truck, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
+import MobileHeader from "@/components/MobileHeader";
+import BottomNav from "@/components/BottomNav";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items: cart, total: cartTotal, clearCart } = useCart();
+  const { items: cart, total: cartTotal, clearCart, setIsCartOpen } = useCart(); // Get setIsCartOpen
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -68,21 +71,29 @@ const Checkout = () => {
   }, [user]);
 
   // Queries
+  const { data: settings } = useQuery({
+    queryKey: ["settings"],
+    queryFn: fetchSettings,
+  });
+
   const { data: provinces } = useQuery({
     queryKey: ["provinces"],
     queryFn: fetchProvinces,
+    staleTime: Infinity,
   });
 
   const { data: cities, isLoading: isLoadingCities } = useQuery({
     queryKey: ["cities", provinceId],
     queryFn: () => fetchCities(provinceId),
     enabled: !!provinceId && provinceId !== "undefined",
+    staleTime: Infinity,
   });
 
   const { data: districts, isLoading: isLoadingDistricts } = useQuery({
     queryKey: ["districts", cityId],
     queryFn: () => fetchDistricts(cityId),
     enabled: !!cityId && cityId !== "undefined",
+    staleTime: Infinity,
   });
 
   // Mutations
@@ -159,8 +170,11 @@ const Checkout = () => {
       0
     );
 
+    // Use store settings for origin (District ID prefers, fallback to 1527 Betara)
+    const origin = settings?.storeDistrictId || "1527";
+
     calculateCostMutation.mutate({
-      origin: "1527", // Default Store Location: Betara (ID 1527 found via scan)
+      origin: origin,
       destination: districtId,
       weight: totalWeight,
       courier: courier,
@@ -225,23 +239,36 @@ const Checkout = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col pb-16 md:pb-0">
         <Header />
-        <main className="flex-grow container mx-auto px-6 py-20 text-center">
+        <MobileHeader />
+        <main className="flex-grow container mx-auto px-4 md:px-6 py-20 text-center">
           <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
           <Button onClick={() => navigate("/")}>Continue Shopping</Button>
         </main>
-        <Footer />
+        <div className="hidden md:block">
+          <Footer />
+        </div>
+        <BottomNav />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col pb-16 md:pb-0">
       <Header />
-      <main className="flex-grow container mx-auto px-6 py-12">
+      <MobileHeader />
+      <main className="flex-grow container mx-auto px-4 md:px-6 py-6 md:py-12">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+          <Button
+            variant="ghost"
+            className="mb-2 pl-0 hover:bg-transparent hover:text-primary"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Kembali
+          </Button>
+          <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Checkout</h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Form */}
@@ -558,9 +585,13 @@ const Checkout = () => {
           </div>
         </div>
       </main>
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
+      <BottomNav />
     </div>
   );
 };
 
 export default Checkout;
+

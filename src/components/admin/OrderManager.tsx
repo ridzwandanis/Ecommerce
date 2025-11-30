@@ -37,9 +37,9 @@ const OrderManager = () => {
       updateOrderStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-      toast({ title: "Status updated", description: "Order status updated." });
+      toast({ title: "Status diperbarui", description: "Status pesanan telah diperbarui." });
     },
-    onError: () => toast({ title: "Update failed", variant: "destructive" }),
+    onError: () => toast({ title: "Gagal memperbarui", variant: "destructive" }),
   });
 
   // Handlers
@@ -61,28 +61,28 @@ const OrderManager = () => {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Orders</h2>
-        <p className="text-muted-foreground">Manage customer orders.</p>
+        <h2 className="text-3xl font-bold tracking-tight">Pesanan</h2>
+        <p className="text-muted-foreground">Kelola pesanan pelanggan.</p>
       </div>
 
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">Order ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Items</TableHead>
+              <TableHead className="w-[100px]">ID Pesanan</TableHead>
+              <TableHead>Pelanggan</TableHead>
+              <TableHead>Item</TableHead>
               <TableHead>Total</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead>Tanggal</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isOrdersLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8">Loading orders...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8">Memuat pesanan...</TableCell></TableRow>
             ) : orders?.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No orders found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Tidak ada pesanan ditemukan.</TableCell></TableRow>
             ) : (
               orders?.map((order) => (
                 <TableRow key={order.id}>
@@ -97,13 +97,13 @@ const OrderManager = () => {
                     <div className="flex flex-col gap-1">
                       {order.items.map((item) => (
                         <span key={item.id} className="text-sm">
-                          {item.quantity}x {item.product?.name || "Unknown Product"}
+                          {item.quantity}x {item.product?.name || "Produk Tidak Diketahui"}
                         </span>
                       ))}
                     </div>
                   </TableCell>
                   <TableCell>Rp {Number(order.total).toLocaleString()}</TableCell>
-                  <TableCell>{format(new Date(order.createdAt), "MMM d, yyyy HH:mm")}</TableCell>
+                  <TableCell>{format(new Date(order.createdAt), "dd MMM yyyy HH:mm")}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(order.status)} variant="secondary">{order.status}</Badge>
                   </TableCell>
@@ -111,11 +111,11 @@ const OrderManager = () => {
                     <Select defaultValue={order.status} onValueChange={(value) => handleStatusChange(order.id, value)}>
                       <SelectTrigger className="w-[130px] ml-auto"><SelectValue placeholder="Status" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="shipped">Shipped</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="pending">Menunggu</SelectItem>
+                        <SelectItem value="paid">Dibayar</SelectItem>
+                        <SelectItem value="shipped">Dikirim</SelectItem>
+                        <SelectItem value="completed">Selesai</SelectItem>
+                        <SelectItem value="cancelled">Dibatalkan</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>

@@ -4,7 +4,8 @@ export type Product = {
   id: number;
   name: string;
   price: number;
-  category: string;
+  categoryId?: number;
+  category?: string | { id: number; name: string };
   image: string;
   stock: number;
   type: "physical" | "digital";

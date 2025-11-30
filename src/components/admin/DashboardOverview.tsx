@@ -2,7 +2,7 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAdminStats } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { Bar, BarChart, Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { DollarSign, ShoppingBag, AlertTriangle, Package } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -21,76 +21,76 @@ const DashboardOverview = () => {
   }
 
   if (error) {
-    return <div className="text-red-500">Failed to load dashboard data.</div>;
+    return <div className="text-red-500">Gagal memuat data ringkasan.</div>;
   }
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">Overview of your store performance.</p>
+        <h2 className="text-3xl font-bold tracking-tight">Ringkasan Toko</h2>
+        <p className="text-muted-foreground">Ringkasan performa toko Anda.</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pendapatan</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               Rp {stats?.totalRevenue.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">Lifetime earnings</p>
+            <p className="text-xs text-muted-foreground">Pendapatan keseluruhan</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pesanan</CardTitle>
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+{stats?.totalOrders}</div>
-            <p className="text-xs text-muted-foreground">Lifetime orders</p>
+            <p className="text-xs text-muted-foreground">Pesanan keseluruhan</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Alert</CardTitle>
+            <CardTitle className="text-sm font-medium">Stok Menipis</CardTitle>
             <AlertTriangle className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.lowStockCount}</div>
-            <p className="text-xs text-muted-foreground">Products with &le; 5 items</p>
+            <p className="text-xs text-muted-foreground">Produk dengan &le; 5 item</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Products</CardTitle>
+            <CardTitle className="text-sm font-medium">Produk Aktif</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">--</div> 
             {/* We didn't fetch total products count explicitly, but that's fine for now */}
-            <p className="text-xs text-muted-foreground">In catalog</p>
+            <p className="text-xs text-muted-foreground">Dalam katalog</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+        <Card className="col-span-7">
           <CardHeader>
-            <CardTitle>Revenue (Last 7 Days)</CardTitle>
+            <CardTitle>Pendapatan (7 Hari Terakhir)</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats?.revenueChart}>
+                <LineChart data={stats?.revenueChart}>
                   <XAxis 
                     dataKey="date" 
                     stroke="#888888" 
@@ -110,19 +110,19 @@ const DashboardOverview = () => {
                     tickFormatter={(value) => `Rp${value/1000}k`}
                   />
                   <Tooltip 
-                    formatter={(value: number) => [`Rp ${value.toLocaleString()}`, "Revenue"]}
-                    labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                    formatter={(value: number) => [`Rp ${value.toLocaleString()}`, "Pendapatan"]}
+                    labelFormatter={(label) => new Date(label).toLocaleDateString("id-ID")}
                   />
-                  <Bar dataKey="revenue" fill="#18181b" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                  <Line type="monotone" dataKey="revenue" stroke="#18181b" strokeWidth={2} dot={false} />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="col-span-3">
+        <Card className="col-span-7">
           <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
+            <CardTitle>Pesanan Terbaru</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-8">
@@ -138,7 +138,7 @@ const DashboardOverview = () => {
                 </div>
               ))}
               {stats?.recentOrders.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">No orders yet.</p>
+                <p className="text-sm text-muted-foreground text-center py-4">Belum ada pesanan.</p>
               )}
             </div>
           </CardContent>

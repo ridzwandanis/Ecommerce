@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchProducts,
+  fetchCategories,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -34,18 +35,23 @@ const ProductManager = () => {
     queryFn: fetchProducts,
   });
 
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: fetchCategories,
+  });
+
   const createProductMutation = useMutation({
     mutationFn: createProduct,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       setIsProductFormOpen(false);
       toast({
-        title: "Product created",
-        description: "New product added successfully.",
+        title: "Produk dibuat",
+        description: "Produk baru berhasil ditambahkan.",
       });
     },
     onError: () =>
-      toast({ title: "Failed to create product", variant: "destructive" }),
+      toast({ title: "Gagal membuat produk", variant: "destructive" }),
   });
 
   const updateProductMutation = useMutation({
@@ -56,12 +62,12 @@ const ProductManager = () => {
       setIsProductFormOpen(false);
       setEditingProduct(null);
       toast({
-        title: "Product updated",
-        description: "Product details updated.",
+        title: "Produk diperbarui",
+        description: "Detail produk diperbarui.",
       });
     },
     onError: () =>
-      toast({ title: "Failed to update product", variant: "destructive" }),
+      toast({ title: "Gagal memperbarui produk", variant: "destructive" }),
   });
 
   const deleteProductMutation = useMutation({
@@ -69,12 +75,12 @@ const ProductManager = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       toast({
-        title: "Product deleted",
-        description: "Product removed successfully.",
+        title: "Produk dihapus",
+        description: "Produk berhasil dihapus.",
       });
     },
     onError: () =>
-      toast({ title: "Failed to delete product", variant: "destructive" }),
+      toast({ title: "Gagal menghapus produk", variant: "destructive" }),
   });
 
   const handleAddProduct = () => {
@@ -90,7 +96,7 @@ const ProductManager = () => {
   const handleDeleteProduct = (id: number) => {
     if (
       confirm(
-        "Are you sure you want to delete this product? This action cannot be undone."
+        "Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan."
       )
     ) {
       deleteProductMutation.mutate(id);
@@ -109,11 +115,11 @@ const ProductManager = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Products</h2>
-          <p className="text-muted-foreground">Manage your product catalog.</p>
+          <h2 className="text-3xl font-bold tracking-tight">Produk</h2>
+          <p className="text-muted-foreground">Kelola katalog produk Anda.</p>
         </div>
         <Button onClick={handleAddProduct}>
-          <Plus className="mr-2 h-4 w-4" /> Add Product
+          <Plus className="mr-2 h-4 w-4" /> Tambah Produk
         </Button>
       </div>
 
@@ -122,20 +128,20 @@ const ProductManager = () => {
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
-              <TableHead>Image</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Weight</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Gambar</TableHead>
+              <TableHead>Nama</TableHead>
+              <TableHead>Kategori</TableHead>
+              <TableHead>Harga</TableHead>
+              <TableHead>Stok</TableHead>
+              <TableHead>Berat</TableHead>
+              <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isProductsLoading ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-8">
-                  Loading products...
+                  Memuat produk...
                 </TableCell>
               </TableRow>
             ) : products?.length === 0 ? (
@@ -144,7 +150,7 @@ const ProductManager = () => {
                   colSpan={8}
                   className="text-center py-8 text-muted-foreground"
                 >
-                  No products found.
+                  Tidak ada produk ditemukan.
                 </TableCell>
               </TableRow>
             ) : (
@@ -161,7 +167,7 @@ const ProductManager = () => {
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
+                  <TableCell>{product.category?.name || "-"}</TableCell>
                   <TableCell>
                     Rp {Number(product.price).toLocaleString()}
                   </TableCell>
@@ -175,7 +181,7 @@ const ProductManager = () => {
                           : "text-muted-foreground"
                       }`}
                     >
-                      {product.stock} units
+                      {product.stock} unit
                     </span>
                   </TableCell>
                   <TableCell>
@@ -217,6 +223,7 @@ const ProductManager = () => {
         isSubmitting={
           createProductMutation.isPending || updateProductMutation.isPending
         }
+        categories={categories || []}
       />
     </div>
   );

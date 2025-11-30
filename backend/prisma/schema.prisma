@@ -95,5 +95,40 @@ model StoreSetting {
   tiktok          String?
   supportEmail    String?
   
+  // Shipping Origin
+  storeAddress    String?
+  storeProvinceId String?
+  storeCityId     String?
+  storeDistrictId String?
+  
   updatedAt       DateTime @updatedAt
+}
+
+// --- Location Cache Models ---
+
+model Province {
+  id        String   @id
+  name      String
+  cities    City[]
+}
+
+model City {
+  id          String     @id
+  provinceId  String
+  province    Province   @relation(fields: [provinceId], references: [id])
+  name        String
+  type        String     // "Kota" or "Kabupaten"
+  postalCode  String?
+  districts   District[]
+  
+  @@index([provinceId])
+}
+
+model District {
+  id        String   @id
+  cityId    String
+  city      City     @relation(fields: [cityId], references: [id])
+  name      String
+  
+  @@index([cityId])
 }

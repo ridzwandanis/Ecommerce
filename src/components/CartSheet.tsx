@@ -64,9 +64,9 @@ const CartSheet = () => {
                     <div className="flex flex-1 flex-col">
                       <div className="flex justify-between text-base font-medium text-foreground">
                         <h3 className="line-clamp-2 mr-2">{item.name}</h3>
-                        <p className="ml-4">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="ml-4">Rp {(item.price * item.quantity).toLocaleString()}</p>
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">{item.category}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{item.category?.name || "Umum"}</p>
 
                       <div className="flex flex-1 items-end justify-between text-sm">
                         <div className="flex items-center border rounded-md">
@@ -113,7 +113,7 @@ const CartSheet = () => {
             <div className="space-y-1.5">
               <div className="flex justify-between text-base font-medium text-foreground">
                 <p>Subtotal</p>
-                <p>${total.toFixed(2)}</p>
+                <p>Rp {total.toLocaleString()}</p>
               </div>
               <p className="text-xs text-muted-foreground">
                 Shipping and taxes calculated at checkout.

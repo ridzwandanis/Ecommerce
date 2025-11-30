@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Product } from "@/lib/api";
+import { Product, Category } from "@/lib/api";
 
 interface ProductFormProps {
   open: boolean;
@@ -26,6 +26,7 @@ interface ProductFormProps {
   initialData?: Product | null;
   onSubmit: (data: Partial<Product>) => void;
   isSubmitting: boolean;
+  categories: Category[];
 }
 
 const ProductForm = ({
@@ -34,11 +35,12 @@ const ProductForm = ({
   initialData,
   onSubmit,
   isSubmitting,
+  categories,
 }: ProductFormProps) => {
   const [formData, setFormData] = useState<Partial<Product>>({
     name: "",
     price: 0,
-    category: "",
+    categoryId: undefined,
     image: "/placeholder.svg",
     description: "",
     stock: 0,
@@ -48,13 +50,16 @@ const ProductForm = ({
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        categoryId: initialData.categoryId,
+      });
     } else {
       // Reset form for create mode
       setFormData({
         name: "",
         price: 0,
-        category: "",
+        categoryId: undefined,
         image: "/placeholder.svg",
         description: "",
         stock: 0,
@@ -66,6 +71,11 @@ const ProductForm = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Ensure categoryId is a number
+    if (!formData.categoryId) {
+      alert("Mohon pilih kategori");
+      return;
+    }
     onSubmit(formData);
   };
 
@@ -74,18 +84,18 @@ const ProductForm = ({
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {initialData ? "Edit Product" : "Add New Product"}
+            {initialData ? "Edit Produk" : "Tambah Produk Baru"}
           </DialogTitle>
           <DialogDescription>
             {initialData
-              ? "Make changes to the product details here."
-              : "Fill in the details to create a new product."}
+              ? "Ubah detail produk di sini."
+              : "Isi detail untuk membuat produk baru."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Nama</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -96,7 +106,7 @@ const ProductForm = ({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="price">Price ($)</Label>
+              <Label htmlFor="price">Harga (Rp)</Label>
               <Input
                 id="price"
                 type="number"
@@ -111,20 +121,29 @@ const ProductForm = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Input
-              id="category"
-              value={formData.category}
-              onChange={(e) =>
-                setFormData({ ...formData, category: e.target.value })
+            <Label htmlFor="category">Kategori</Label>
+            <Select
+              value={formData.categoryId?.toString()}
+              onValueChange={(value) =>
+                setFormData({ ...formData, categoryId: Number(value) })
               }
-              required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih kategori" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="stock">Stock</Label>
+              <Label htmlFor="stock">Stok</Label>
               <Input
                 id="stock"
                 type="number"
@@ -136,7 +155,7 @@ const ProductForm = ({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="weight">Weight (grams)</Label>
+              <Label htmlFor="weight">Berat (gram)</Label>
               <Input
                 id="weight"
                 type="number"
@@ -153,7 +172,7 @@ const ProductForm = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Deskripsi</Label>
             <Textarea
               id="description"
               value={formData.description || ""}
@@ -164,7 +183,7 @@ const ProductForm = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image">Image URL</Label>
+            <Label htmlFor="image">URL Gambar</Label>
             <Input
               id="image"
               value={formData.image}
@@ -176,7 +195,7 @@ const ProductForm = ({
 
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Product"}
+              {isSubmitting ? "Menyimpan..." : "Simpan Produk"}
             </Button>
           </DialogFooter>
         </form>

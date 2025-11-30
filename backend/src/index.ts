@@ -66,6 +66,10 @@ interface StoreSettingInput {
   twitter?: string;
   tiktok?: string;
   supportEmail?: string;
+  storeAddress?: string;
+  storeProvinceId?: string;
+  storeCityId?: string;
+  storeDistrictId?: string;
 }
 
 // Extend Express Request to include user
@@ -112,76 +116,188 @@ const authenticateToken = (
   });
 };
 
-// --- RAJAONGKIR PROXY ---
+// --- RAJAONGKIR PROXY WITH CACHING ---
 
+// 1. Get Provinces
 app.get("/api/rajaongkir/provinces", async (req, res) => {
-  if (!RAJAONGKIR_API_KEY)
-    return res.status(500).json({ error: "API Key not configured" });
   try {
+    // A. Check Database
+    const cachedProvinces = await prisma.province.findMany();
+    
+    if (cachedProvinces.length > 0) {
+      // Return cached data formatted like RajaOngkir
+      return res.json(
+        cachedProvinces.map((p) => ({
+          province_id: p.id,
+          province: p.name,
+          id: p.id, // Keep 'id' for generic usage
+          name: p.name
+        }))
+      );
+    }
+
+    // B. Fetch from API (If DB empty)
+    if (!RAJAONGKIR_API_KEY)
+      return res.status(500).json({ error: "API Key not configured" });
+
     const response = await axios.get(
       `${RAJAONGKIR_BASE_URL}/destination/province`,
-      {
-        headers: { key: RAJAONGKIR_API_KEY },
-      }
+      { headers: { key: RAJAONGKIR_API_KEY } }
     );
-    res.json(response.data.data || response.data.rajaongkir?.results);
+
+    const provincesData = response.data.rajaongkir?.results || [];
+
+    // C. Save to Database
+    if (provincesData.length > 0) {
+      await prisma.province.createMany({
+        data: provincesData.map((p: any) => ({
+          id: p.province_id,
+          name: p.province,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    res.json(provincesData);
   } catch (error: any) {
-    console.error("RajaOngkir Error:", error.response?.data || error.message);
-    res
-      .status(500)
-      .json({ error: "Failed to fetch provinces", details: error.message });
+    console.error("RajaOngkir Province Error:", error.response?.data || error.message);
+    res.status(error.response?.status || 500).json({
+      error: "Failed to fetch provinces",
+      details: error.message,
+    });
   }
 });
 
+// 2. Get Cities by Province
 app.get("/api/rajaongkir/cities/:provinceId", async (req, res) => {
   const { provinceId } = req.params;
-  if (!RAJAONGKIR_API_KEY)
-    return res.status(500).json({ error: "API Key not configured" });
   try {
-    console.log(`Fetching cities for province: ${provinceId}`);
-    // Standard RajaOngkir expects 'province' query param.
+    // A. Check Database
+    const cachedCities = await prisma.city.findMany({
+      where: { provinceId: provinceId },
+    });
+
+    if (cachedCities.length > 0) {
+      return res.json(
+        cachedCities.map((c) => ({
+          city_id: c.id,
+          province_id: c.provinceId,
+          city_name: c.name,
+          type: c.type,
+          postal_code: c.postalCode,
+          // Aliases
+          id: c.id,
+          name: c.name,
+        }))
+      );
+    }
+
+    // B. Fetch from API
+    if (!RAJAONGKIR_API_KEY)
+      return res.status(500).json({ error: "API Key not configured" });
+
+    console.log(`Fetching cities for province: ${provinceId} from API...`);
     const response = await axios.get(
       `${RAJAONGKIR_BASE_URL}/destination/city/${provinceId}`,
-      {
-        headers: { key: RAJAONGKIR_API_KEY },
-      }
+      { headers: { key: RAJAONGKIR_API_KEY } }
     );
-    res.json(response.data.data || response.data.rajaongkir?.results || []);
+
+    const citiesData = response.data.rajaongkir?.results || [];
+
+    // C. Save to Database
+    // Ensure Province Exists first (Foreign Key constraint)
+    // (Usually fetchProvinces runs first, but just in case)
+    const provinceExists = await prisma.province.findUnique({ where: { id: provinceId } });
+    if (!provinceExists && citiesData.length > 0) {
+       // If province doesn't exist locally, we can't save cities yet due to FK.
+       // We just return data without caching, or we could fetch province.
+       // For simplicity/safety, we just return data.
+       // Ideally, seed provinces first.
+       console.warn(`Province ${provinceId} not found in DB. Skipping cache for cities.`);
+       return res.json(citiesData);
+    }
+
+    if (citiesData.length > 0) {
+      await prisma.city.createMany({
+        data: citiesData.map((c: any) => ({
+          id: c.city_id,
+          provinceId: c.province_id,
+          name: c.city_name,
+          type: c.type,
+          postalCode: c.postal_code,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    res.json(citiesData);
   } catch (error: any) {
-    console.error("RajaOngkir City Error:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
-    // Forward the actual error from upstream if available
-    const status = error.response?.status || 500;
-    const data = error.response?.data || {
+    console.error("RajaOngkir City Error:", error.response?.data || error.message);
+    res.status(error.response?.status || 500).json({
       error: "Failed to fetch cities",
       details: error.message,
-    };
-    res.status(status).json(data);
+    });
   }
 });
 
+// 3. Get Districts by City
 app.get("/api/rajaongkir/districts/:cityId", async (req, res) => {
   const { cityId } = req.params;
-  if (!RAJAONGKIR_API_KEY)
-    return res.status(500).json({ error: "API Key not configured" });
   try {
+    // A. Check Database
+    const cachedDistricts = await prisma.district.findMany({
+      where: { cityId: cityId },
+    });
+
+    if (cachedDistricts.length > 0) {
+      return res.json(
+        cachedDistricts.map((d) => ({
+          subdistrict_id: d.id,
+          city_id: d.cityId,
+          subdistrict_name: d.name,
+          // Aliases
+          id: d.id,
+          name: d.name,
+        }))
+      );
+    }
+
+    // B. Fetch from API
+    if (!RAJAONGKIR_API_KEY)
+      return res.status(500).json({ error: "API Key not configured" });
+
     const response = await axios.get(
       `${RAJAONGKIR_BASE_URL}/destination/district/${cityId}`,
-      {
-        headers: { key: RAJAONGKIR_API_KEY },
-      }
+      { headers: { key: RAJAONGKIR_API_KEY } }
     );
-    res.json(response.data.data || response.data.rajaongkir?.results || []);
+
+    const districtsData = response.data.rajaongkir?.results || [];
+
+    // C. Save to Database
+    const cityExists = await prisma.city.findUnique({ where: { id: cityId } });
+    if (!cityExists) {
+       console.warn(`City ${cityId} not found in DB. Skipping cache for districts.`);
+       return res.json(districtsData);
+    }
+
+    if (districtsData.length > 0) {
+      await prisma.district.createMany({
+        data: districtsData.map((d: any) => ({
+          id: d.subdistrict_id,
+          cityId: d.city_id,
+          name: d.subdistrict_name,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    res.json(districtsData);
   } catch (error: any) {
     const status = error.response?.status || 500;
-    const data = error.response?.data || {
+    res.status(status).json({
       error: "Failed to fetch districts",
       details: error.message,
-    };
-    res.status(status).json(data);
+    });
   }
 });
 
@@ -398,15 +514,50 @@ app.get("/api/settings", async (req, res) => {
 });
 
 app.put("/api/admin/settings", authenticateToken, async (req, res) => {
-  const body = req.body as StoreSettingInput;
+  console.log("Received settings update:", req.body);
+  const {
+    storeName,
+    storeDescription,
+    logoUrl,
+    bannerUrl,
+    whatsapp,
+    instagram,
+    facebook,
+    twitter,
+    tiktok,
+    supportEmail,
+    storeAddress,
+    storeProvinceId,
+    storeCityId,
+    storeDistrictId,
+  } = req.body as StoreSettingInput;
+
+  const dataToUpdate = {
+    storeName,
+    storeDescription,
+    logoUrl,
+    bannerUrl,
+    whatsapp,
+    instagram,
+    facebook,
+    twitter,
+    tiktok,
+    supportEmail,
+    storeAddress,
+    storeProvinceId,
+    storeCityId,
+    storeDistrictId,
+  };
+
   try {
     const settings = await prisma.storeSetting.upsert({
       where: { id: 1 },
-      update: body,
-      create: { id: 1, ...body },
+      update: dataToUpdate,
+      create: { id: 1, ...dataToUpdate },
     });
     res.json(settings);
   } catch (error) {
+    console.error("Error updating settings:", error);
     res.status(500).json({ error: "Failed to update settings" });
   }
 });
@@ -582,14 +733,36 @@ app.post("/api/products", authenticateToken, async (req, res) => {
 
 app.put("/api/products/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const body = req.body as ProductInput;
+  const {
+    name,
+    price,
+    categoryId,
+    image,
+    description,
+    stock,
+    weight,
+    type,
+    fileUrl,
+  } = req.body as ProductInput;
+
   try {
     const product = await prisma.product.update({
       where: { id: Number(id) },
-      data: { ...body, stock: Number(body.stock) },
+      data: {
+        name,
+        price,
+        categoryId: Number(categoryId),
+        image,
+        description,
+        stock: Number(stock),
+        weight: weight ? Number(weight) : 1000,
+        type,
+        fileUrl,
+      },
     });
     res.json({ ...product, price: Number(product.price) });
   } catch (error) {
+    console.error("Error updating product:", error);
     res.status(500).json({ error: "Failed to update product" });
   }
 });
@@ -610,10 +783,12 @@ app.get("/api/products/:id", async (req, res) => {
   try {
     const product = await prisma.product.findUnique({
       where: { id: Number(id) },
+      include: { category: true },
     });
     if (product) res.json({ ...product, price: Number(product.price) });
     else res.status(404).json({ error: "Product not found" });
   } catch (error) {
+    console.error("Error fetching product:", error);
     res.status(500).json({ error: "Failed to fetch product" });
   }
 });

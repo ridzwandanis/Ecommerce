@@ -219,6 +219,10 @@ export interface StoreSetting {
   twitter?: string;
   tiktok?: string;
   supportEmail?: string;
+  storeAddress?: string;
+  storeProvinceId?: string;
+  storeCityId?: string;
+  storeDistrictId?: string;
 }
 
 export const fetchSettings = async (): Promise<StoreSetting> => {
