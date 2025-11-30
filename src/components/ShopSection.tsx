@@ -7,23 +7,27 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 const ShopSection = () => {
-  const [activeCategory, setActiveCategory] = useState("All");
-  
-  const { data: products, isLoading, error } = useQuery({
+  const [activeCategory, setActiveCategory] = useState("Semua");
+
+  const {
+    data: products,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["products"],
     queryFn: fetchProducts,
   });
 
   const categories = useMemo(() => {
-    if (!products) return ["All"];
-    const cats = new Set(products.map((p) => p.category));
-    return ["All", ...Array.from(cats)];
+    if (!products) return ["Semua"];
+    const cats = new Set(products.map((p) => p.category?.name).filter(Boolean));
+    return ["Semua", ...Array.from(cats)];
   }, [products]);
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
-    if (activeCategory === "All") return products;
-    return products.filter((p) => p.category === activeCategory);
+    if (activeCategory === "Semua") return products;
+    return products.filter((p) => p.category?.name === activeCategory);
   }, [products, activeCategory]);
 
   if (isLoading) {
@@ -51,7 +55,7 @@ const ShopSection = () => {
   if (error) {
     return (
       <section id="shop" className="py-16 px-6 text-center text-destructive">
-        Failed to load products. Please try again later.
+        Gagal memuat produk. Silakan coba lagi nanti.
       </section>
     );
   }
@@ -61,10 +65,10 @@ const ShopSection = () => {
       <div className="container mx-auto">
         <div className="mb-10 text-center">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-3">
-            Our Collection
+            Koleksi Kami
           </h2>
           <p className="text-gray-500 max-w-2xl mx-auto">
-            Explore our hand-picked selection of premium products.
+            Jelajahi pilihan produk premium kami.
           </p>
         </div>
 
@@ -75,8 +79,8 @@ const ShopSection = () => {
               key={category}
               variant={activeCategory === category ? "default" : "outline"}
               className={`rounded-full px-6 ${
-                activeCategory === category 
-                  ? "bg-gray-900 text-white hover:bg-gray-800" 
+                activeCategory === category
+                  ? "bg-gray-900 text-white hover:bg-gray-800"
                   : "hover:bg-gray-100"
               }`}
               onClick={() => setActiveCategory(category)}
@@ -95,13 +99,15 @@ const ShopSection = () => {
           </div>
         ) : (
           <div className="text-center py-20">
-            <p className="text-gray-500">No products found in this category.</p>
-            <Button 
-              variant="link" 
-              onClick={() => setActiveCategory("All")}
+            <p className="text-gray-500">
+              Tidak ada produk dalam kategori ini.
+            </p>
+            <Button
+              variant="link"
+              onClick={() => setActiveCategory("Semua")}
               className="mt-2"
             >
-              View all products
+              Lihat semua produk
             </Button>
           </div>
         )}
