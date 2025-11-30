@@ -1,14 +1,27 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    products: number;
+  };
+}
+
 export interface Product {
   id: number;
   name: string;
   price: number;
-  category: string;
+  categoryId: number;
+  category?: Category;
   image: string;
   description?: string;
   stock: number;
-  weight?: number; // Optional because old products might not have it populated in frontend logic yet
+  weight?: number;
   type: "physical" | "digital";
   fileUrl?: string;
 }
@@ -287,5 +300,53 @@ export const calculateShippingCost = async (data: {
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error("Failed to calculate cost");
+  return response.json();
+};
+
+// Category API
+export const fetchCategories = async (): Promise<Category[]> => {
+  const response = await fetch(`${API_URL}/categories`);
+  if (!response.ok) throw new Error("Failed to fetch categories");
+  return response.json();
+};
+
+export const fetchCategory = async (id: number): Promise<Category> => {
+  const response = await fetch(`${API_URL}/categories/${id}`);
+  if (!response.ok) throw new Error("Failed to fetch category");
+  return response.json();
+};
+
+export const createCategory = async (data: Partial<Category>) => {
+  const response = await fetch(`${API_URL}/categories`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to create category");
+  }
+  return response.json();
+};
+
+export const updateCategory = async (id: number, data: Partial<Category>) => {
+  const response = await fetch(`${API_URL}/categories/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error("Failed to update category");
+  return response.json();
+};
+
+export const deleteCategory = async (id: number) => {
+  const response = await fetch(`${API_URL}/categories/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to delete category");
+  }
   return response.json();
 };
