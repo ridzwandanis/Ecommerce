@@ -1,4 +1,4 @@
-import { ShoppingBag, Menu, Search, Home, User, Heart } from "lucide-react";
+import { ShoppingBag, Menu, Search, Home, User, Heart, Book, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useQuery } from "@tanstack/react-query";
@@ -19,10 +19,11 @@ const MobileHeader = () => {
   }
 
   const navItems = [
-    { name: "Home", icon: Home, path: "/" },
-    { name: "Akun", icon: User, path: "/account" },
-    { name: "Wishlist", icon: Heart, path: "#wishlist" }, // Placeholder for now
-    { name: "Pencarian", icon: Search, path: "#search" }, // Placeholder for now
+    { name: "Beranda", icon: Home, path: "/" },
+    { name: "Belanja", icon: ShoppingBag, path: "/shop" },
+    { name: "Produk", icon: ShoppingBag, path: "/shop" }, 
+    { name: "Blog", icon: Book, path: "/blog" },
+    { name: "Unggulan", icon: Star, path: "/shop?filter=featured" },
   ];
 
   return (

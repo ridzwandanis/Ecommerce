@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"; // activeCategory and categories are not needed anymore
+import { Link } from "react-router-dom";
 import ProductCard from "./ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts } from "@/lib/api";
@@ -67,8 +68,8 @@ const ShopSection = () => {
           <h2 className="text-lg md:text-xl font-bold tracking-tight text-gray-900">
             Sedang Tren
           </h2>
-          <Button variant="link" className="text-sm font-medium p-0 h-auto">
-            Lihat semua
+          <Button variant="link" asChild className="text-sm font-medium p-0 h-auto">
+            <Link to="/shop">Lihat semua</Link>
           </Button>
         </div>
 

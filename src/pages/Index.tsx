@@ -1,8 +1,11 @@
 import Header from "@/components/Header";
 import MobileHeader from "@/components/MobileHeader";
 import Hero from "@/components/Hero";
+import GenderCategories from "@/components/GenderCategories";
 import Features from "@/components/Features";
 import ShopSection from "@/components/ShopSection";
+import FeaturedBanner from "@/components/FeaturedBanner";
+import RunningTextBanner from "@/components/RunningTextBanner";
 import CategoryGrid from "@/components/CategoryGrid";
 import NewArrivals from "@/components/NewArrivals";
 import BottomNav from "@/components/BottomNav";
@@ -24,6 +27,7 @@ const Index = () => {
           <CategoryGrid />
           <NewArrivals />
         </div>
+        <GenderCategories />
 
         {/* Features (Desktop Only - to keep mobile clean) */}
         <div className="hidden md:block">
@@ -32,19 +36,17 @@ const Index = () => {
 
         {/* Main Shop Grid (Trending Now) */}
         <div className="pt-4 md:pt-0">
-          <div className="px-4 md:hidden">
-             <h3 className="text-lg font-bold text-foreground mb-4">Sedang Tren</h3>
-          </div>
           <ShopSection />
         </div>
-      </main>
+        
+        <FeaturedBanner />
 
-      <div className="hidden md:block">
-        <Footer />
-      </div>
+        <RunningTextBanner />
+            </main>
       
-      <BottomNav />
-    </div>
+            <Footer />
+            
+            <BottomNav />    </div>
   );
 };
 

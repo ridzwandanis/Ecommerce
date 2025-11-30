@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Select,
   SelectContent,
@@ -183,13 +184,11 @@ const ProductForm = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image">URL Gambar</Label>
-            <Input
-              id="image"
-              value={formData.image}
-              onChange={(e) =>
-                setFormData({ ...formData, image: e.target.value })
-              }
+            <Label htmlFor="image">Gambar Produk</Label>
+            <ImageUpload
+              value={formData.image || ""}
+              onChange={(url) => setFormData({ ...formData, image: url })}
+              disabled={isSubmitting}
             />
           </div>
 

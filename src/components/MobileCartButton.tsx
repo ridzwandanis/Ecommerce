@@ -8,7 +8,7 @@ const MobileCartButton = () => {
   if (itemCount === 0) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 md:hidden">
+    <div className="fixed bottom-20 right-6 z-50 md:hidden">
       <Button
         size="icon"
         className="h-14 w-14 rounded-full shadow-xl bg-primary text-primary-foreground"

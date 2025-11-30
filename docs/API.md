@@ -560,6 +560,176 @@ Content-Type: application/json
 
 ---
 
+## File Upload
+
+### Upload Image
+
+Upload an image file. Automatically converts to AVIF format for optimal performance.
+
+**Endpoint:** `POST /upload`
+
+**Headers:**
+
+```
+Authorization: Bearer <admin-token>
+Content-Type: multipart/form-data
+```
+
+**Request Body:**
+
+Form data with file field:
+
+```
+file: <image file>
+```
+
+**Supported formats:** JPG, PNG, WEBP, GIF (all converted to AVIF)
+
+**Max file size:** 5MB
+
+**Response:** `200 OK`
+
+```json
+{
+  "url": "https://cdn.yourdomain.com/uploads/1234567890-image.avif"
+}
+```
+
+**Features:**
+
+- ✅ Automatic AVIF conversion (30-50% smaller files)
+- ✅ Cloudflare R2 storage (or local fallback)
+- ✅ Quality optimization (80% quality, effort 4)
+- ✅ Unique filename generation
+
+**Error Responses:**
+
+```json
+{
+  "error": "No file uploaded"
+}
+```
+
+```json
+{
+  "error": "Failed to upload file"
+}
+```
+
+---
+
+## Blog Posts
+
+### Get All Posts
+
+Retrieve all blog posts.
+
+**Endpoint:** `GET /posts`
+
+**Response:** `200 OK`
+
+```json
+[
+  {
+    "id": 1,
+    "title": "Fashion Trends 2025",
+    "slug": "fashion-trends-2025",
+    "excerpt": "Discover the latest trends...",
+    "content": "Full article content...",
+    "image": "https://example.com/image.jpg",
+    "category": "Fashion",
+    "author": "Admin",
+    "isPublished": true,
+    "createdAt": "2025-11-30T10:00:00.000Z",
+    "updatedAt": "2025-11-30T10:00:00.000Z"
+  }
+]
+```
+
+---
+
+### Get Single Post
+
+Get a blog post by ID.
+
+**Endpoint:** `GET /posts/:id`
+
+**Response:** `200 OK`
+
+---
+
+### Create Post
+
+Create a new blog post (Admin only).
+
+**Endpoint:** `POST /posts`
+
+**Headers:**
+
+```
+Authorization: Bearer <admin-token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```json
+{
+  "title": "New Article",
+  "content": "Article content...",
+  "image": "https://example.com/image.jpg",
+  "category": "Tips",
+  "excerpt": "Short summary",
+  "isPublished": true
+}
+```
+
+**Response:** `201 Created`
+
+---
+
+### Update Post
+
+Update a blog post (Admin only).
+
+**Endpoint:** `PUT /posts/:id`
+
+**Headers:**
+
+```
+Authorization: Bearer <admin-token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```json
+{
+  "title": "Updated Title",
+  "content": "Updated content..."
+}
+```
+
+**Response:** `200 OK`
+
+---
+
+### Delete Post
+
+Delete a blog post (Admin only).
+
+**Endpoint:** `DELETE /posts/:id`
+
+**Headers:**
+
+```
+Authorization: Bearer <admin-token>
+```
+
+**Response:** `200 OK`
+
+---
+
 ## Admin Stats
 
 ### Get Dashboard Statistics

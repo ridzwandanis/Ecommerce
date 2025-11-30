@@ -7,12 +7,13 @@ import {
   LogOut,
   Settings,
   Menu,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 
-type TabType = "dashboard" | "products" | "categories" | "orders" | "settings";
+type TabType = "dashboard" | "products" | "categories" | "orders" | "settings" | "blog";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -82,6 +83,15 @@ const AdminLayout = ({
         >
           <ShoppingCart className="mr-2 h-4 w-4" />
           Pesanan
+        </Button>
+
+        <Button
+          variant={activeTab === "blog" ? "secondary" : "ghost"}
+          className="w-full justify-start"
+          onClick={() => handleTabClick("blog")}
+        >
+          <FileText className="mr-2 h-4 w-4" />
+          Blog
         </Button>
 
         <Button

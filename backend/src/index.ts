@@ -5,6 +5,12 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import { S3Client } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import sharp from "sharp";
 
 dotenv.config();
 
@@ -18,8 +24,36 @@ const RAJAONGKIR_API_KEY = process.env.RAJAONGKIR_API_KEY;
 const RAJAONGKIR_BASE_URL =
   process.env.RAJAONGKIR_BASE_URL || "https://rajaongkir.komerce.id/api/v1";
 
+// Cloudflare R2 Config
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
+const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
+const R2_PUBLIC_DOMAIN = process.env.R2_PUBLIC_DOMAIN;
+
+const s3Client = new S3Client({
+  region: "auto",
+  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: R2_ACCESS_KEY_ID || "",
+    secretAccessKey: R2_SECRET_ACCESS_KEY || "",
+  },
+});
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
+
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from uploads directory
+const uploadsDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use("/uploads", express.static(uploadsDir));
 
 // Interfaces
 interface ProductInput {
@@ -123,7 +157,7 @@ app.get("/api/rajaongkir/provinces", async (req, res) => {
   try {
     // A. Check Database
     const cachedProvinces = await prisma.province.findMany();
-    
+
     if (cachedProvinces.length > 0) {
       // Return cached data formatted like RajaOngkir
       return res.json(
@@ -131,7 +165,7 @@ app.get("/api/rajaongkir/provinces", async (req, res) => {
           province_id: p.id,
           province: p.name,
           id: p.id, // Keep 'id' for generic usage
-          name: p.name
+          name: p.name,
         }))
       );
     }
@@ -160,7 +194,10 @@ app.get("/api/rajaongkir/provinces", async (req, res) => {
 
     res.json(provincesData);
   } catch (error: any) {
-    console.error("RajaOngkir Province Error:", error.response?.data || error.message);
+    console.error(
+      "RajaOngkir Province Error:",
+      error.response?.data || error.message
+    );
     res.status(error.response?.status || 500).json({
       error: "Failed to fetch provinces",
       details: error.message,
@@ -207,14 +244,18 @@ app.get("/api/rajaongkir/cities/:provinceId", async (req, res) => {
     // C. Save to Database
     // Ensure Province Exists first (Foreign Key constraint)
     // (Usually fetchProvinces runs first, but just in case)
-    const provinceExists = await prisma.province.findUnique({ where: { id: provinceId } });
+    const provinceExists = await prisma.province.findUnique({
+      where: { id: provinceId },
+    });
     if (!provinceExists && citiesData.length > 0) {
-       // If province doesn't exist locally, we can't save cities yet due to FK.
-       // We just return data without caching, or we could fetch province.
-       // For simplicity/safety, we just return data.
-       // Ideally, seed provinces first.
-       console.warn(`Province ${provinceId} not found in DB. Skipping cache for cities.`);
-       return res.json(citiesData);
+      // If province doesn't exist locally, we can't save cities yet due to FK.
+      // We just return data without caching, or we could fetch province.
+      // For simplicity/safety, we just return data.
+      // Ideally, seed provinces first.
+      console.warn(
+        `Province ${provinceId} not found in DB. Skipping cache for cities.`
+      );
+      return res.json(citiesData);
     }
 
     if (citiesData.length > 0) {
@@ -232,7 +273,10 @@ app.get("/api/rajaongkir/cities/:provinceId", async (req, res) => {
 
     res.json(citiesData);
   } catch (error: any) {
-    console.error("RajaOngkir City Error:", error.response?.data || error.message);
+    console.error(
+      "RajaOngkir City Error:",
+      error.response?.data || error.message
+    );
     res.status(error.response?.status || 500).json({
       error: "Failed to fetch cities",
       details: error.message,
@@ -276,8 +320,10 @@ app.get("/api/rajaongkir/districts/:cityId", async (req, res) => {
     // C. Save to Database
     const cityExists = await prisma.city.findUnique({ where: { id: cityId } });
     if (!cityExists) {
-       console.warn(`City ${cityId} not found in DB. Skipping cache for districts.`);
-       return res.json(districtsData);
+      console.warn(
+        `City ${cityId} not found in DB. Skipping cache for districts.`
+      );
+      return res.json(districtsData);
     }
 
     if (districtsData.length > 0) {
@@ -648,11 +694,11 @@ app.get("/api/categories/:id", async (req, res) => {
 
 // Create category (Admin only)
 app.post("/api/categories", authenticateToken, async (req, res) => {
-  const { name, description } = req.body;
+  const { name, description, icon } = req.body;
   try {
     const slug = name.toLowerCase().replace(/\s+/g, "-");
     const category = await prisma.category.create({
-      data: { name, slug, description },
+      data: { name, slug, description, icon },
     });
     res.status(201).json(category);
   } catch (error: any) {
@@ -667,12 +713,12 @@ app.post("/api/categories", authenticateToken, async (req, res) => {
 // Update category (Admin only)
 app.put("/api/categories/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { name, description } = req.body;
+  const { name, description, icon } = req.body;
   try {
     const slug = name.toLowerCase().replace(/\s+/g, "-");
     const category = await prisma.category.update({
       where: { id: Number(id) },
-      data: { name, slug, description },
+      data: { name, slug, description, icon },
     });
     res.json(category);
   } catch (error) {
@@ -887,6 +933,160 @@ app.patch("/api/orders/:id/status", async (req, res) => {
     res.status(500).json({ error: "Failed to update order status" });
   }
 });
+
+// --- BLOG POST API ---
+
+app.get("/api/posts", async (req, res) => {
+  try {
+    const posts = await prisma.blogPost.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
+
+app.get("/api/posts/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const post = await prisma.blogPost.findUnique({
+      where: { id: Number(id) },
+    });
+    if (!post) return res.status(404).json({ error: "Post not found" });
+    res.json(post);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch post" });
+  }
+});
+
+app.post("/api/posts", authenticateToken, async (req, res) => {
+  const { title, content, image, category, excerpt, isPublished } = req.body;
+  try {
+    const slug =
+      title
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "") // remove non-word chars
+        .replace(/\s+/g, "-") +
+      "-" +
+      Date.now(); // simple slug
+
+    const post = await prisma.blogPost.create({
+      data: {
+        title,
+        slug,
+        content,
+        image,
+        category,
+        excerpt,
+        isPublished: isPublished ?? true,
+        author: "Admin", // Hardcoded for now
+      },
+    });
+    res.status(201).json(post);
+  } catch (error) {
+    console.error("Create post error:", error);
+    res.status(500).json({ error: "Failed to create post" });
+  }
+});
+
+app.put("/api/posts/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { title, content, image, category, excerpt, isPublished } = req.body;
+  try {
+    const post = await prisma.blogPost.update({
+      where: { id: Number(id) },
+      data: {
+        title,
+        content,
+        image,
+        category,
+        excerpt,
+        isPublished,
+      },
+    });
+    res.json(post);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update post" });
+  }
+});
+
+app.delete("/api/posts/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.blogPost.delete({ where: { id: Number(id) } });
+    res.json({ message: "Post deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete post" });
+  }
+});
+
+// --- FILE UPLOAD API ---
+
+app.post(
+  "/api/upload",
+  authenticateToken,
+  upload.single("file"),
+  async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    // Check if R2 is configured, otherwise use local storage
+    const useR2 =
+      R2_ACCOUNT_ID &&
+      R2_ACCESS_KEY_ID &&
+      R2_SECRET_ACCESS_KEY &&
+      R2_BUCKET_NAME &&
+      R2_PUBLIC_DOMAIN &&
+      R2_ACCESS_KEY_ID !== "your-access-key-id";
+
+    try {
+      // Convert image to AVIF format
+      console.log("Converting image to AVIF format...");
+      const avifBuffer = await sharp(req.file.buffer)
+        .avif({ quality: 80, effort: 4 })
+        .toBuffer();
+
+      // Generate filename with .avif extension
+      const originalName = path.parse(req.file.originalname).name;
+      const baseFileName = `${Date.now()}-${originalName.replace(/\s+/g, "-")}`;
+
+      if (useR2) {
+        // Use Cloudflare R2
+        const fileName = `uploads/${baseFileName}.avif`;
+
+        const parallelUploads3 = new Upload({
+          client: s3Client,
+          params: {
+            Bucket: R2_BUCKET_NAME,
+            Key: fileName,
+            Body: avifBuffer,
+            ContentType: "image/avif",
+          },
+        });
+
+        await parallelUploads3.done();
+        const url = `${R2_PUBLIC_DOMAIN}/${fileName}`;
+        console.log(`File uploaded to R2 as AVIF: ${url}`);
+        res.json({ url });
+      } else {
+        // Use local file storage
+        console.log("Using local file storage (R2 not configured)");
+        const fileName = `${baseFileName}.avif`;
+        const filePath = path.join(uploadsDir, fileName);
+
+        fs.writeFileSync(filePath, avifBuffer);
+
+        // Return relative URL that works with proxy
+        const url = `/uploads/${fileName}`;
+        console.log(`File uploaded successfully as AVIF: ${url}`);
+        res.json({ url });
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  }
+);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

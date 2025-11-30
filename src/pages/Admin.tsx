@@ -5,10 +5,11 @@ import ProductManager from "@/components/admin/ProductManager";
 import CategoryManager from "@/components/admin/CategoryManager";
 import OrderManager from "@/components/admin/OrderManager";
 import SettingsManager from "@/components/admin/SettingsManager";
+import BlogManager from "@/components/admin/BlogManager";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "products" | "categories" | "orders" | "settings"
+    "dashboard" | "products" | "categories" | "orders" | "settings" | "blog"
   >("dashboard");
 
   return (
@@ -17,6 +18,7 @@ const Admin = () => {
       {activeTab === "products" && <ProductManager />}
       {activeTab === "categories" && <CategoryManager />}
       {activeTab === "orders" && <OrderManager />}
+      {activeTab === "blog" && <BlogManager />}
       {activeTab === "settings" && <SettingsManager />}
     </AdminLayout>
   );

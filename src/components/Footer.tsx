@@ -6,7 +6,7 @@ import {
   Twitter,
   Facebook,
   Mail,
-  MapPin,
+  MapPin, // MapPin is imported but not used, good to keep for potential future use or remove if not needed.
   Phone,
 } from "lucide-react";
 
@@ -27,7 +27,7 @@ const Footer = () => {
   }
 
   return (
-    <footer className="bg-gray-900 text-gray-300 py-12 mt-20 border-t border-gray-800">
+    <footer className="bg-gray-900 text-gray-300 py-12 border-t border-gray-800">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Column */}
@@ -101,13 +101,13 @@ const Footer = () => {
             <div className="space-y-3 text-sm">
               {settings?.whatsapp && (
                 <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-primary" />
+                  <Phone className="h-4 w-4 text-white" /> {/* Changed from text-primary to text-white */}
                   <span>{settings.whatsapp}</span>
                 </div>
               )}
               {settings?.supportEmail && (
                 <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-primary" />
+                  <Mail className="h-4 w-4 text-white" /> {/* Changed from text-primary to text-white */}
                   <span>{settings.supportEmail}</span>
                 </div>
               )}
@@ -119,7 +119,7 @@ const Footer = () => {
                     href={settings.instagram}
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-white transition-colors"
+                    className="text-white hover:text-gray-300 transition-colors" /* Added text-white */
                   >
                     <Instagram className="h-5 w-5" />
                   </a>
@@ -129,7 +129,7 @@ const Footer = () => {
                     href={settings.twitter}
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-white transition-colors"
+                    className="text-white hover:text-gray-300 transition-colors" /* Added text-white */
                   >
                     <Twitter className="h-5 w-5" />
                   </a>
@@ -139,7 +139,7 @@ const Footer = () => {
                     href={settings.facebook}
                     target="_blank"
                     rel="noreferrer"
-                    className="hover:text-white transition-colors"
+                    className="text-white hover:text-gray-300 transition-colors" /* Added text-white */
                   >
                     <Facebook className="h-5 w-5" />
                   </a>

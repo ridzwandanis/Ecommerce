@@ -22,20 +22,25 @@
 ### 🛒 **Customer Features**
 
 - **Product Catalog** - Browse products with beautiful, responsive design
+- **Advanced Filtering** - Filter products by category and featured status via sidebar or mobile sheet
+- **Blog & News** - Read the latest fashion trends and store updates
 - **Smart Shopping Cart** - Persistent cart using local storage
 - **Real-time Shipping Cost** - Integrated with RajaOngkir API for accurate shipping rates
 - **Multi-Courier Support** - Choose from JNE, TIKI, and POS Indonesia
 - **Location-based Delivery** - Select province, city, and district for precise shipping calculation
 - **Order History** - Track all your orders with detailed information
 - **User Authentication** - Secure login and registration system
+- **Interactive UI** - Marquee banners, promo sliders, and smooth animations
 
 ### 👨‍💼 **Admin Features**
 
-- **Product Management** - Create, update, and delete products with ease
-- **Category Management** - Organize products into categories
-- **Inventory Tracking** - Real-time stock management with low-stock alerts
-- **Order Management** - View and update order status
 - **Dashboard Analytics** - Revenue charts and sales statistics
+- **Product Management** - Create, update, and delete products with ease
+- **Category Management** - Organize products with custom icons
+- **Blog Management** - Write and manage articles/news posts with featured images
+- **Image Upload** - Cloudflare R2 integration with automatic AVIF conversion
+- **Order Management** - View and update order status
+- **Inventory Tracking** - Real-time stock management with low-stock alerts
 - **Store Settings** - Customize store name, logo, and social media links
 - **Indonesian Interface** - Fully localized admin dashboard
 - **Automatic Stock Deduction** - Prevents overselling with transaction safety
@@ -44,6 +49,8 @@
 
 - **Mobile-First UI** - App-like experience with sticky headers and bottom navigation
 - **Location Caching** - Smart database caching for shipping APIs to prevent rate limiting
+- **Image Optimization** - Automatic AVIF conversion for 30-50% smaller file sizes
+- **Cloud Storage** - Cloudflare R2 integration with local fallback for development
 - **Type-Safe** - Full TypeScript implementation on both frontend and backend
 - **Modern UI** - Built with Tailwind CSS and shadcn/ui components
 - **Optimistic Updates** - Smooth UX with React Query
@@ -99,6 +106,8 @@ docker-compose up --build
 - 🔐 **JWT** - Authentication
 - 🔒 **bcrypt** - Password hashing
 - 📦 **RajaOngkir API** - Shipping integration
+- 🖼️ **Sharp** - Image processing & AVIF conversion
+- ☁️ **Cloudflare R2** - Object storage (S3-compatible)
 
 </td>
 </tr>
@@ -120,7 +129,7 @@ The fastest way to get started:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/microsite-shop.git
+git clone https://github.com/ridzwandanis/Ecommerce.git
 cd microsite-shop
 
 # Start all services
@@ -225,6 +234,13 @@ ADMIN_PASSWORD=admin123
 JWT_SECRET=your-super-secret-jwt-key-change-me
 RAJAONGKIR_API_KEY=your-rajaongkir-api-key
 RAJAONGKIR_BASE_URL=https://rajaongkir.komerce.id/api/v1
+
+# Cloudflare R2 Storage (Optional - uses local storage if not configured)
+R2_ACCOUNT_ID=your-account-id
+R2_ACCESS_KEY_ID=your-access-key-id
+R2_SECRET_ACCESS_KEY=your-secret-access-key
+R2_BUCKET_NAME=your-bucket-name
+R2_PUBLIC_DOMAIN=https://your-cdn-domain.com
 ```
 
 ### Frontend (`.env`)
@@ -251,6 +267,40 @@ This project uses RajaOngkir API for shipping cost calculation. To get your API 
 - JNE (Jalur Nugraha Ekakurir)
 - TIKI (Citra Van Titipan Kilat)
 - POS Indonesia
+
+### Cloudflare R2 Setup (Optional)
+
+For production, we recommend using Cloudflare R2 for image storage. If not configured, the system will automatically use local file storage.
+
+**Setup Steps:**
+
+1. Create a [Cloudflare account](https://dash.cloudflare.com/sign-up)
+2. Go to R2 Object Storage in your dashboard
+3. Create a new bucket (e.g., "assets")
+4. Generate API tokens:
+   - Go to "Manage R2 API Tokens"
+   - Create a new API token with "Object Read & Write" permissions
+   - Copy the Access Key ID and Secret Access Key
+5. Set up public access:
+   - Enable "Public Access" in bucket settings
+   - Add a custom domain or use R2.dev subdomain
+6. Add credentials to `backend/.env`:
+
+```env
+R2_ACCOUNT_ID=your-account-id
+R2_ACCESS_KEY_ID=your-access-key-id
+R2_SECRET_ACCESS_KEY=your-secret-access-key
+R2_BUCKET_NAME=assets
+R2_PUBLIC_DOMAIN=https://cdn.yourdomain.com
+```
+
+**Benefits:**
+
+- ✅ Automatic AVIF conversion (30-50% smaller files)
+- ✅ Global CDN distribution
+- ✅ No egress fees
+- ✅ S3-compatible API
+- ✅ Automatic fallback to local storage in development
 
 ---
 

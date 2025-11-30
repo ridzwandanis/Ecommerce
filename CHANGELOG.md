@@ -9,16 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial release of Microsite Shop
-- Product management system with CRUD operations
-- Shopping cart with local storage persistence
-- RajaOngkir API integration for shipping cost calculation
-- Multi-courier support (JNE, TIKI, POS Indonesia)
-- User authentication and authorization
-- Admin dashboard with analytics
-- Order management system
-- Responsive design for mobile and desktop
-- Docker support for easy deployment
+- **Image Upload System:** Integrated Cloudflare R2 for cloud storage with automatic fallback to local storage
+- **AVIF Conversion:** All uploaded images automatically converted to AVIF format (30-50% smaller files)
+- **Blog System:** Complete blog/article management with featured images
+- **Category Icons:** Added icon field to categories for better visual representation
+- **Image Upload Component:** Reusable ImageUpload component with drag-and-drop support
+
+### Changed
+
+- **Image Processing:** Implemented Sharp library for image optimization and format conversion
+- **Storage Strategy:** Dual storage support (Cloudflare R2 for production, local for development)
+- **Admin Forms:** Fixed accessibility issues in ProductForm and BlogPostForm dialogs
+- **Vite Configuration:** Added proxy for local image serving during development
+
+### Technical
+
+- Added Sharp dependency for image processing
+- Integrated AWS SDK for S3-compatible storage
+- Implemented automatic AVIF conversion with quality optimization
+- Added Multer for multipart/form-data handling
+- Updated documentation for image upload and storage architecture
 
 ### Features
 

@@ -18,9 +18,10 @@ const Header = () => {
 
   const navLinks = [
     { label: "Beranda", href: "/" },
-    { label: "Belanja", href: "#shop" },
-    { label: "Tentang", href: "#about" },
-    { label: "Kontak", href: "#contact" },
+    { label: "Belanja", href: "/shop" },
+    { label: "Produk", href: "/shop" },
+    { label: "Blog", href: "/blog" },
+    { label: "Unggulan", href: "/shop?filter=featured" },
   ];
 
   return (
@@ -55,13 +56,13 @@ const Header = () => {
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
-                href={link.href}
+                to={link.href}
                 className="text-sm font-medium text-foreground/70 transition-colors hover:text-foreground"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
 

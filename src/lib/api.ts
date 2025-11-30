@@ -5,6 +5,7 @@ export interface Category {
   name: string;
   slug: string;
   description?: string;
+  icon?: string; // New field
   createdAt: string;
   updatedAt: string;
   _count?: {
@@ -352,5 +353,61 @@ export const deleteCategory = async (id: number) => {
     const error = await response.json();
     throw new Error(error.error || "Failed to delete category");
   }
+  return response.json();
+};
+
+// Blog API
+export interface BlogPost {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content: string;
+  image?: string;
+  category?: string;
+  author?: string;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const fetchPosts = async (): Promise<BlogPost[]> => {
+  const response = await fetch(`${API_URL}/posts`);
+  if (!response.ok) throw new Error("Failed to fetch posts");
+  return response.json();
+};
+
+export const fetchPost = async (id: number): Promise<BlogPost> => {
+  const response = await fetch(`${API_URL}/posts/${id}`);
+  if (!response.ok) throw new Error("Failed to fetch post");
+  return response.json();
+};
+
+export const createPost = async (data: Partial<BlogPost>) => {
+  const response = await fetch(`${API_URL}/posts`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error("Failed to create post");
+  return response.json();
+};
+
+export const updatePost = async (id: number, data: Partial<BlogPost>) => {
+  const response = await fetch(`${API_URL}/posts/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error("Failed to update post");
+  return response.json();
+};
+
+export const deletePost = async (id: number) => {
+  const response = await fetch(`${API_URL}/posts/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) throw new Error("Failed to delete post");
   return response.json();
 };

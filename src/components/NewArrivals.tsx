@@ -34,9 +34,9 @@ const NewArrivals = () => {
     <div className="pt-8">
       <div className="flex items-center justify-between px-4 mb-4">
         <h3 className="text-lg font-bold text-foreground">Terbaru</h3>
-        <a href="#shop" className="text-sm font-medium text-primary hover:text-primary/80">
+        <Link to="/shop" className="text-sm font-medium text-primary hover:text-primary/80">
           Lihat semua
-        </a>
+        </Link>
       </div>
       
       {/* Horizontal Scroll Container */}

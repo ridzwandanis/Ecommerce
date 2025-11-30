@@ -38,16 +38,26 @@ Microsite Shop follows a **three-tier architecture**:
 │  - REST API Endpoints                       │
 │  - Authentication (JWT)                     │
 │  - Business Logic                           │
+│  - Image Processing (Sharp → AVIF)          │
 │  - External API Integration (RajaOngkir)    │
-└──────────────────┬──────────────────────────┘
-                   │ Prisma ORM
-┌──────────────────▼──────────────────────────┐
-│         Database (PostgreSQL)               │
-│  - User Data                                │
-│  - Products & Orders                        │
-│  - Store Settings                           │
-│  - Location Cache (Provinces/Cities)        │
-└─────────────────────────────────────────────┘
+└──────────────┬────────────────┬─────────────┘
+               │                │
+               │ Prisma ORM     │ S3 API
+               │                │
+┌──────────────▼────────────┐   │
+│  Database (PostgreSQL)    │   │
+│  - User Data              │   │
+│  - Products & Orders      │   │
+│  - Store Settings         │   │
+│  - Location Cache         │   │
+└───────────────────────────┘   │
+                                │
+                    ┌───────────▼──────────────┐
+                    │  Cloudflare R2 Storage   │
+                    │  - Product Images (AVIF) │
+                    │  - Blog Images (AVIF)    │
+                    │  - CDN Distribution      │
+                    └──────────────────────────┘
 ```
 
 ---
@@ -77,6 +87,9 @@ Microsite Shop follows a **three-tier architecture**:
 - **JWT** - Token-based authentication
 - **bcrypt** - Password hashing
 - **Axios** - HTTP client
+- **Sharp** - Image processing & AVIF conversion
+- **Multer** - File upload handling
+- **AWS SDK** - S3-compatible storage client
 
 #### DevOps
 
@@ -270,6 +283,17 @@ Response
                       │ weight      │
                       │ type        │
                       └─────────────┘
+
+┌─────────────┐
+│  BlogPost   │
+├─────────────┤
+│ id (PK)     │
+│ title       │
+│ slug        │
+│ content     │
+│ category    │
+│ isPublished │
+└─────────────┘
 ```
 
 ### Key Relationships
@@ -447,6 +471,85 @@ return response.data;
 const totalWeight = cart.reduce((acc, item) => {
   return acc + item.quantity * (item.weight || 1000);
 }, 0);
+```
+
+---
+
+## Image Upload & Storage
+
+### Upload Flow
+
+```
+User selects image
+    ↓
+Frontend (ImageUpload component)
+    ↓
+POST /api/upload (multipart/form-data)
+    ↓
+Backend receives file (Multer)
+    ↓
+Sharp converts to AVIF (quality: 80, effort: 4)
+    ↓
+Check R2 configuration
+    ↓
+┌─────────────────┬─────────────────┐
+│   R2 Configured │  Not Configured │
+└────────┬────────┴────────┬────────┘
+         │                 │
+         ▼                 ▼
+   Upload to R2      Save to local
+   (S3 API)          filesystem
+         │                 │
+         ▼                 ▼
+   Return CDN URL    Return local URL
+```
+
+### AVIF Conversion
+
+All uploaded images are automatically converted to AVIF format for optimal performance:
+
+```typescript
+const avifBuffer = await sharp(req.file.buffer)
+  .avif({
+    quality: 80, // Balance between size and quality
+    effort: 4, // Balance between speed and compression
+  })
+  .toBuffer();
+```
+
+**Benefits:**
+
+- 30-50% smaller file size compared to JPEG/PNG
+- Better quality at same file size
+- Faster page load times
+- Reduced bandwidth costs
+
+### Storage Strategy
+
+**Production (Cloudflare R2):**
+
+- Global CDN distribution
+- No egress fees
+- S3-compatible API
+- Custom domain support
+
+**Development (Local Storage):**
+
+- Automatic fallback if R2 not configured
+- Files saved to `backend/uploads/`
+- Served via Express static middleware
+- Proxied through Vite dev server
+
+### Configuration Detection
+
+```typescript
+const useR2 =
+  R2_ACCOUNT_ID &&
+  R2_ACCESS_KEY_ID &&
+  R2_SECRET_ACCESS_KEY &&
+  R2_BUCKET_NAME &&
+  R2_PUBLIC_DOMAIN &&
+  R2_ACCESS_KEY_ID !== "your-access-key-id";
 ```
 
 ---

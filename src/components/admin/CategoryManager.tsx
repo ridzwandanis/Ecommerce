@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Dialog,
   DialogContent,
@@ -36,7 +37,7 @@ const CategoryManager = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "" });
+  const [formData, setFormData] = useState({ name: "", description: "", icon: "" }); // Add icon to formData
 
   const { data: categories, isLoading } = useQuery({
     queryKey: ["categories"],
@@ -49,7 +50,7 @@ const CategoryManager = () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
       setIsDialogOpen(false);
-      setFormData({ name: "", description: "" });
+      setFormData({ name: "", description: "", icon: "" });
       toast({ title: "Kategori berhasil dibuat" });
     },
     onError: (error: Error) => {
@@ -69,7 +70,7 @@ const CategoryManager = () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       setIsDialogOpen(false);
       setEditingCategory(null);
-      setFormData({ name: "", description: "" });
+      setFormData({ name: "", description: "", icon: "" });
       toast({ title: "Kategori berhasil diupdate" });
     },
     onError: () => {
@@ -98,7 +99,7 @@ const CategoryManager = () => {
 
   const handleAdd = () => {
     setEditingCategory(null);
-    setFormData({ name: "", description: "" });
+    setFormData({ name: "", description: "", icon: "" }); // Reset icon too
     setIsDialogOpen(true);
   };
 
@@ -107,6 +108,7 @@ const CategoryManager = () => {
     setFormData({
       name: category.name,
       description: category.description || "",
+      icon: category.icon || "", // Set icon for editing
     });
     setIsDialogOpen(true);
   };
@@ -210,12 +212,15 @@ const CategoryManager = () => {
 
       {/* Dialog Form */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent 
+          aria-labelledby="category-dialog-title"
+          aria-describedby="category-dialog-description"
+        >
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle id="category-dialog-title">
               {editingCategory ? "Edit Kategori" : "Tambah Kategori"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="category-dialog-description">
               {editingCategory
                 ? "Ubah informasi kategori di bawah ini."
                 : "Isi informasi kategori baru."}
@@ -244,6 +249,15 @@ const CategoryManager = () => {
                 }
                 placeholder="Deskripsi kategori..."
                 rows={3}
+              />
+            </div>
+            {/* New Image Upload for Category Icon */}
+            <div className="space-y-2">
+              <Label htmlFor="icon">Ikon Kategori (Opsional)</Label>
+              <ImageUpload
+                value={formData.icon || ""}
+                onChange={(url) => setFormData({ ...formData, icon: url })}
+                disabled={createMutation.isPending || updateMutation.isPending}
               />
             </div>
             <DialogFooter>
